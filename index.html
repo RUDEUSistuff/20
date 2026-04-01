@@ -4,22 +4,20 @@
 <meta charset="UTF-8">
 <title>AI Smart Calculator Hub</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.4.3/decimal.min.js"></script>
-
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{margin:0;padding:20px;font-family:'Segoe UI',Arial,sans-serif;background:radial-gradient(ellipse at center,#0a0f2a 0%,#03050b 100%);color:white;display:flex;justify-content:center;align-items:center;min-height:vh;text-align:center;flex-direction:column;position:relative;overflow-x:hidden}
+body{margin:0;padding:10px;font-family:'Segoe UI',Arial,sans-serif;background:radial-gradient(ellipse at center,#0a0f2a 0%,#03050b 100%);color:white;display:flex;justify-content:center;align-items:center;min-height:100vh;text-align:center;flex-direction:column;overflow-x:hidden}
 .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .star{position:absolute;background:white;border-radius:50%;animation:moveUp linear infinite}
 @keyframes moveUp{0%{transform:translateY(100vh)}100%{transform:translateY(-20vh)}}
-.container{max-width:400px;width:90%;margin:auto;position:relative;z-index:1} 
+.container{max-width:400px;width:90%;margin:auto;position:relative;z-index:1}
 .hidden{display:none}
-button,.btn,.menu-btn{padding:14px 24px;margin:8px;border-radius:12px;color:white;background:rgba(255,182,193,0.7);cursor:pointer;transition:0.2s} 
-button:hover,.btn:hover,.menu-btn:hover{transform:scale(1.05);background:rgba(255,182,193,0.9)}
-input{padding:14px;width:85%;border-radius:12px;text-align:center;margin:10px}
-.result,.explain{margin:10px}
+button,.btn,.menu-btn{padding:12px 22px;margin:6px;border-radius:12px;color:white;background:rgba(255,182,193,0.8);cursor:pointer;transition:0.2s;font-size:14px}
+button:hover,.btn:hover,.menu-btn:hover{transform:scale(1.05);background:rgba(255,182,193,1)}
+input{padding:12px;width:80%;border-radius:12px;text-align:center;margin:10px;font-size:14px}
+.result,.explain{margin:8px;font-size:14px}
 </style>
 </head>
-
 <body>
 
 <div class="stars" id="starsContainer"></div>
@@ -29,6 +27,8 @@ input{padding:14px;width:85%;border-radius:12px;text-align:center;margin:10px}
 <!-- Welcome -->
 <div id="welcome">
 <h1>AI Smart Calculator Hub</h1>
+<p>Enter exactly 2 numbers to start</p>
+<input id="numCheck" placeholder="Enter 2 numbers separated by comma">
 <button id="startBtn">Start</button>
 </div>
 
@@ -55,6 +55,11 @@ input{padding:14px;width:85%;border-radius:12px;text-align:center;margin:10px}
 <button onclick="addMath('Math.sqrt(')">√</button>
 <button onclick="addMath('Math.PI')">π</button>
 <button onclick="addMath('Math.E')">e</button>
+<button onclick="addMath('Math.sin(')">sin</button>
+<button onclick="addMath('Math.cos(')">cos</button>
+<button onclick="addMath('Math.tan(')">tan</button>
+<button onclick="addMath('Math.log(')">log</button>
+<button onclick="addMath('Math.abs(')">abs</button>
 </div>
 <div>
 <button onclick="clearMath()">Clear</button>
@@ -87,7 +92,7 @@ input{padding:14px;width:85%;border-radius:12px;text-align:center;margin:10px}
 <button onclick="showPhysicsPopup('Einstein E')">E=mc²</button>
 <button onclick="showPhysicsPopup('Coulomb Law')">Coulomb Law</button>
 <button onclick="showPhysicsPopup('Wave Speed')">Wave Speed</button>
-<button onclick="showPhysicsPopup('Ohm Resistivity')">Resistivity</button>
+<button onclick="showPhysicsPopup('Resistivity')">Resistivity</button>
 </div>
 <button onclick="showPage('menu')">Back</button>
 </div>
@@ -113,119 +118,107 @@ input{padding:14px;width:85%;border-radius:12px;text-align:center;margin:10px}
 <button onclick="showPage('menu')">Back</button>
 </div>
 
-<!-- Physics popup -->
-<div id="overlay" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);display:flex;justify-content:center;align-items:center;z-index:999">
-<div style="background:#111; padding:20px; border-radius:12px; max-width:300px; width:90%">
-<h3 id="popupTitle"></h3>
-<input id="val1" placeholder="Value 1">
-<input id="val2" placeholder="Value 2">
-<button onclick="applyPhysics()">Calculate</button>
-<div id="popupResult"></div>
-<button onclick="closeOverlay()">Close</button>
-</div>
 </div>
 
 <script>
-
 // stars
 for(let i=0;i<30;i++){
-let s=document.createElement('div');
-s.className='star';
-s.style.width='2px';
-s.style.height='2px';
-s.style.left=Math.random()*100+'%';
-s.style.animationDuration=(Math.random()*5+5)+'s';
-document.getElementById('starsContainer').appendChild(s);
+  let s=document.createElement('div');
+  s.className='star';
+  s.style.width='2px';
+  s.style.height='2px';
+  s.style.left=Math.random()*100+'%';
+  s.style.animationDuration=(Math.random()*5+5)+'s';
+  document.getElementById('starsContainer').appendChild(s);
 }
 
 // navigation
 function showPage(p){
-['menu','math','physics','puzzle','ai3d'].forEach(id=>{
-document.getElementById(id).classList.add('hidden');
-});
-document.getElementById(p).classList.remove('hidden');
+  ['menu','math','physics','puzzle','ai3d','welcome'].forEach(id=>{
+    document.getElementById(id).classList.add('hidden');
+  });
+  document.getElementById(p).classList.remove('hidden');
 }
+
+// start button with number check
 document.getElementById('startBtn').onclick=()=>{
-document.getElementById('welcome').classList.add('hidden');
-document.getElementById('menu').classList.remove('hidden');
+  let val = document.getElementById('numCheck').value.split(',');
+  if(val.length!==2 || val.some(v=>isNaN(v))){
+    alert("Please enter exactly 2 numbers separated by comma!");
+    return;
+  }
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('menu').classList.remove('hidden');
 };
 
-// math
-function addMath(s){let input=document.getElementById('mathInput');input.value+=s;}
-function clearMath(){document.getElementById('mathInput').value='';document.getElementById('mathRes').innerHTML='Result: ---';document.getElementById('mathExplain').innerHTML='Explanation: ---';}
+// Math functions
+function addMath(op){document.getElementById('mathInput').value+=op}
+function clearMath(){document.getElementById('mathInput').value='';document.getElementById('mathRes').innerHTML="Result: ---";document.getElementById('mathExplain').innerHTML="Explanation: ---";}
 function calculateMath(){
-let input=document.getElementById('mathInput').value;
-try{let res=eval(input);document.getElementById('mathRes').innerHTML="Result: "+res;document.getElementById('mathExplain').innerHTML=input+" = "+res;}catch{document.getElementById('mathRes').innerHTML="Error";}
+  let input=document.getElementById('mathInput').value;
+  try{
+    let res=eval(input);
+    document.getElementById('mathRes').innerHTML="Result: "+res;
+    document.getElementById('mathExplain').innerHTML=input+" = "+res;
+  }catch{
+    document.getElementById('mathRes').innerHTML="Error";
+    document.getElementById('mathExplain').innerHTML="Check your input";
+  }
 }
 
-// physics
-let currentPhysics='';
-function showPhysicsPopup(name){
-currentPhysics=name;
-document.getElementById('popupTitle').innerHTML=name;
-document.getElementById('val1').value='';
-document.getElementById('val2').value='';
-document.getElementById('popupResult').innerHTML='';
-document.getElementById('overlay').classList.remove('hidden');
-}
-function closeOverlay(){document.getElementById('overlay').classList.add('hidden');}
-function applyPhysics(){
-let v1=parseFloat(document.getElementById('val1').value);
-let v2=parseFloat(document.getElementById('val2').value);
-if(isNaN(v1)||isNaN(v2)){document.getElementById('popupResult').innerHTML='Enter valid values'; return;}
-let result='';
-const g=9.81;
-switch(currentPhysics){
-case'Force':result=`${v1*v2} N`;break;
-case'Pressure':result=`${v1/v2} Pa`;break;
-case'Kinetic Energy':result=`${0.5*v1*v2*v2} J`;break;
-case'Potential Energy':result=`${v1*g*v2} J`;break;
-case'Newton Gravity':result=`${6.674e-11*v1*v2/1e10} N`;break;
-case'Ohm Law':result=`${v1/v2} Ω`;break;
-case'Work':result=`${v1*v2} J`;break;
-case'Power':result=`${v1/v2} W`;break;
-case'Density':result=`${v1/v2} kg/m³`;break;
-case'Momentum':result=`${v1*v2} kg·m/s`;break;
-case'Acceleration':result=`${v1/v2} m/s²`;break;
-case'Velocity':result=`${v1/v2} m/s`;break;
-case'Hooke Law':result=`${v1*v2} N`;break;
-case'Einstein E':result=`${v1*9e16} J`;break;
-case'Coulomb Law':result=`${v1*v2} N·m²/C²`;break;
-case'Wave Speed':result=`${v1*v2} m/s`;break;
-case'Ohm Resistivity':result=`${v1*v2} Ω·m`;break;
-default:result='Available';
-}
-document.getElementById('popupResult').innerHTML=`Result: ${result}`;
+// Physics popup
+function showPhysicsPopup(law){
+  let formulas={
+    'Force':'F = m × a',
+    'Pressure':'P = F / A',
+    'Kinetic Energy':'KE = 0.5 × m × v²',
+    'Potential Energy':'PE = m × g × h',
+    'Newton Gravity':'F = G × m₁ × m₂ / r²',
+    'Ohm Law':'V = I × R',
+    'Work':'W = F × d',
+    'Power':'P = W / t',
+    'Density':'ρ = m / V',
+    'Momentum':'p = m × v',
+    'Acceleration':'a = Δv / t',
+    'Velocity':'v = Δx / t',
+    'Hooke Law':'F = k × x',
+    'Einstein E':'E = mc²',
+    'Coulomb Law':'F = k × q₁ × q₂ / r²',
+    'Wave Speed':'v = f × λ',
+    'Resistivity':'R = ρ × L / A'
+  };
+  alert(formulas[law]);
 }
 
 // AI 3D
 function solveAI(){
-let input=document.getElementById('aiInput').value.toLowerCase();
-try{
-if(input.includes('cube')){
-let n=parseFloat(input.match(/\d+/)); let r=n*n*n;
-document.getElementById('aiRes').innerHTML="Result: "+r;
-document.getElementById('aiExplain').innerHTML=`cube volume = ${n}³ = ${r}`;
+  let input=document.getElementById('aiInput').value.toLowerCase();
+  try{
+    if(input.includes('cube')){
+      let n=parseFloat(input.match(/\d+/));
+      let volume = n*n*n;
+      let surface = 6*n*n;
+      let perimeter = 12*n;
+      document.getElementById('aiRes').innerHTML=`Volume: ${volume} | Surface Area: ${surface} | Perimeter: ${perimeter}`;
+      document.getElementById('aiExplain').innerHTML=`Volume = ${n}³ = ${volume} <br> Surface Area = 6×${n}² = ${surface} <br> Perimeter = 12×${n} = ${perimeter}`;
+    } else if(input.includes('sphere')){
+      let r=parseFloat(input.match(/\d+/));
+      let volume=(4/3)*Math.PI*r*r*r;
+      let surface=4*Math.PI*r*r;
+      volume=volume.toFixed(2);
+      surface=surface.toFixed(2);
+      document.getElementById('aiRes').innerHTML=`Volume: ${volume} | Surface Area: ${surface}`;
+      document.getElementById('aiExplain').innerHTML=`Volume = 4/3 π r³ = ${volume} <br> Surface Area = 4 π r² = ${surface}`;
+    } else {
+      let res=eval(input);
+      document.getElementById('aiRes').innerHTML="Result: "+res;
+      document.getElementById('aiExplain').innerHTML=input+" = "+res;
+    }
+  }catch{
+    document.getElementById('aiRes').innerHTML="Error";
+    document.getElementById('aiExplain').innerHTML="Try: cube 3 or sphere 5";
+  }
 }
-else if(input.includes('sphere')){
-let r=parseFloat(input.match(/\d+/));
-let v=(4/3)*Math.PI*r*r*r; v=v.toFixed(2);
-document.getElementById('aiRes').innerHTML="Result: "+v;
-document.getElementById('aiExplain').innerHTML=`4/3 π r³ = ${v}`;
-}
-else{
-let res=eval(input);
-document.getElementById('aiRes').innerHTML="Result: "+res;
-document.getElementById('aiExplain').innerHTML=input+" = "+res;
-}
-}catch{
-document.getElementById('aiRes').innerHTML="Error";
-document.getElementById('aiExplain').innerHTML="Try: cube 3";
-}
-
-}
-
 </script>
-
 </body>
 </html>
